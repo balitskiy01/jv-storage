@@ -1,45 +1,54 @@
 package core.basesyntax.impl;
 
 import core.basesyntax.Storage;
-import java.util.Objects;
 
 public class StorageImpl<K, V> implements Storage<K, V> {
     private static final int MAX_SIZE = 10;
-    private final Object[] keys = new Object[MAX_SIZE];
-    private final Object[] values = new Object[MAX_SIZE];
-    private int size = 0;
+    private final K[] keys;
+    private final V[] values;
+    private int size;
+
+    public StorageImpl() {
+        keys = (K[]) new Object[MAX_SIZE];
+        values = (V[]) new Object[MAX_SIZE];
+        size = 0;
+    }
 
     @Override
     public void put(K key, V value) {
-        for (int i = 0; i < size; i++) {
-            if (Objects.equals(keys[i], key)) {
-                values[i] = value;
-                return;
-            }
+        int index = findIndexByKey(key);
+        if (index != -1) {
+            values[index] = value;
+            return;
         }
-
         if (size >= MAX_SIZE) {
             throw new IllegalStateException("Storage is full (max 10 elements)");
         }
-
         keys[size] = key;
         values[size] = value;
         size++;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public V get(K key) {
-        for (int i = 0; i < size; i++) {
-            if (Objects.equals(keys[i], key)) {
-                return (V) values[i];
-            }
-        }
-        return null;
+        int index = findIndexByKey(key);
+        return index != -1 ? values[index] : null;
     }
 
     @Override
     public int size() {
         return size;
+    }
+
+    private int findIndexByKey(K key) {
+        for (int i = 0; i < size; i++) {
+            if (key == null && keys[i] == null) {
+                return i;
+            }
+            if (key != null && key.equals(keys[i])) {
+                return i;
+            }
+        }
+        return -1;
     }
 }
